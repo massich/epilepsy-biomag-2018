@@ -21,6 +21,12 @@ def create_source_space(subject=None, spacing='oct6'):
     src = mne.setup_source_space(subject=subject, spacing=spacing)
     mne.write_source_spaces(name, src)
 
+
+# ss = ['oct5', 'ico4', 'oct6', 'ico5', 'all'] # XXX: what does all? It computes the previous separately, a set of points that contains all? 
+# for (name, space) in [(x,y) for x in my_subjects for y in all_spacings]:
+#     ...:     create_source_space(subject=name, spacing=space)
+# for s in ss:
+#    create_source_space(subject=subject, spacing=s)
 create_source_space(subject=subject)
 
 ###############################################################################
@@ -46,6 +52,30 @@ create_source_space(subject=subject)
 # Let's look at these surfaces. The function :func:`mne.viz.plot_bem`
 # assumes that you have the the *bem* folder of your subject FreeSurfer
 # reconstruction the necessary files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+################################# SIK ###########
+
+
+
+
+
+
+
+
 
 mne.viz.plot_bem(subject=subject, subjects_dir=subjects_dir,
                  brain_surfaces='white', orientation='coronal')
