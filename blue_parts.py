@@ -1,8 +1,10 @@
+import os
+import numpy as np
 import matplotlib.pyplot as plt
 import mne
 
 
-from config import subject_ids
+from config import subject_ids, subjects_dir
 import utils
 
 plt.close('all')
@@ -49,3 +51,32 @@ evoked_clean = ica.apply(evoked)
 evoked_clean.plot(time_unit='s')
 # ica.fit(raw.copy().pick_types(meg='mag'))
 # ica.fit(raw.copy().pick_types(meg='grad'))
+
+##############################################################################
+# Fit dipole to dipolar ICA component (option 1 with grads only)
+
+evoked_components = mne.EvokedArray(ica.get_components()[:, 31:32], ica.info)
+evoked_components.pick_types(meg='grad')
+n_channels = len(evoked_components.ch_names)
+cov = mne.Covariance(np.eye(n_channels), evoked_components.ch_names, [], [], 1)
+
+trans_fname = os.path.join(subjects_dir, "..", "original_data", subject,
+                           "%s-trans.fif" % subject)
+bem_fname = os.path.join(subjects_dir, "..", "original_data", subject,
+                         "%s-bem.fif" % subject)
+dip, residual = mne.fit_dipole(evoked_components, cov, bem_fname, trans_fname)
+
+##############################################################################
+# Fit dipole to dipolar ICA component (option 2)
+
+ica.exclude = np.setdiff1d(np.arange(ica.n_components_), 31)
+evoked_components = ica.apply(ica.get_components()[:, 31:32], ica.info)
+evoked_components.pick_types(meg='grad')
+n_channels = len(evoked_components.ch_names)
+cov = mne.Covariance(np.eye(n_channels), evoked_components.ch_names, [], [], 1)
+
+trans_fname = os.path.join(subjects_dir, "..", "original_data", subject,
+                           "%s-trans.fif" % subject)
+bem_fname = os.path.join(subjects_dir, "..", "original_data", subject,
+                         "%s-bem.fif" % subject)
+dip, residual = mne.fit_dipole(evoked_components, cov, bem_fname, trans_fname)
