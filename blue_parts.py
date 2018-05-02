@@ -40,10 +40,14 @@ mne.viz.plot_cov(cov, raw.info)
 
 ##############################################################################
 # Run ICA to remove artifacts
-ica = mne.preprocessing.ICA(n_components=0.98, method='picard',
+method = 'picard'
+method = 'fastica'
+ica = mne.preprocessing.ICA(n_components=0.98, method=method,
                             random_state=42)
 ica.fit(raw.copy().pick_types(meg=True))
-ica.exclude = [0, 32]
+# ica.exclude = [0, 32]
+ica.exclude = [1, 32]
+# ica.exclude = []
 ica.plot_components(ch_type='mag')
 ica.plot_sources(raw)
 
@@ -55,28 +59,32 @@ evoked_clean.plot(time_unit='s')
 ##############################################################################
 # Fit dipole to dipolar ICA component (option 1 with grads only)
 
-evoked_components = mne.EvokedArray(ica.get_components()[:, 31:32], ica.info)
-evoked_components.pick_types(meg='grad')
-n_channels = len(evoked_components.ch_names)
-cov = mne.Covariance(np.eye(n_channels), evoked_components.ch_names, [], [], 1)
+# evoked_components = mne.EvokedArray(ica.get_components()[:, 31:32], ica.info)
+# evoked_components.pick_types(meg='grad')
+# n_channels = len(evoked_components.ch_names)
+# noise_cov = mne.Covariance(np.eye(n_channels), evoked_components.ch_names, [], [], 1)
 
-trans_fname = os.path.join(subjects_dir, "..", "original_data", subject,
-                           "%s-trans.fif" % subject)
-bem_fname = os.path.join(subjects_dir, "..", "original_data", subject,
-                         "%s-bem.fif" % subject)
-dip, residual = mne.fit_dipole(evoked_components, cov, bem_fname, trans_fname)
+# trans_fname = os.path.join(subjects_dir, "..", "original_data", subject,
+#                            "%s-trans.fif" % subject)
+# bem_fname = os.path.join(subjects_dir, "..", "original_data", subject,
+#                          "%s-bem.fif" % subject)
+# dip, residual = mne.fit_dipole(evoked_components, noise_cov, bem_fname, trans_fname)
+# dip.plot_locations(trans_fname, subject=subject, subjects_dir=subjects_dir)
 
 ##############################################################################
 # Fit dipole to dipolar ICA component (option 2)
 
-ica.exclude = np.setdiff1d(np.arange(ica.n_components_), 31)
-evoked_components = ica.apply(ica.get_components()[:, 31:32], ica.info)
-evoked_components.pick_types(meg='grad')
-n_channels = len(evoked_components.ch_names)
-cov = mne.Covariance(np.eye(n_channels), evoked_components.ch_names, [], [], 1)
+ica.exclude = list(np.setdiff1d(np.arange(ica.n_components_), 31))
+# ica.exclude = list(np.setdiff1d(np.arange(ica.n_components_), 29))
+evoked_components = ica.apply(evoked).pick_types(meg=True)
+raw_tmp = mne.io.RawArray(evoked_components.data, evoked.info)
+noise_cov = mne.compute_raw_covariance(raw_tmp, tmin=0., tmax=6., method='diagonal_fixed')
 
 trans_fname = os.path.join(subjects_dir, "..", "original_data", subject,
                            "%s-trans.fif" % subject)
 bem_fname = os.path.join(subjects_dir, "..", "original_data", subject,
                          "%s-bem.fif" % subject)
-dip, residual = mne.fit_dipole(evoked_components, cov, bem_fname, trans_fname)
+t_max = evoked_components.times[np.argmax(np.abs(evoked_components.data).sum(0))]
+dip, residual = mne.fit_dipole(evoked_components.copy().crop(t_max, t_max),
+                               noise_cov, bem_fname, trans_fname)
+dip.plot_locations(trans_fname, subject=subject, subjects_dir=subjects_dir)
