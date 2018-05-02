@@ -14,7 +14,11 @@ raw = utils.get_raw_data(subject_id=subject)
 ##############################################################################
 # Exclude some channels
 
-raw.info['bads'] += ['EEG045', 'EEG023', 'EEG032', 'EEG024', 'EEG061', 'MEG1343', 'MEG1312', 'MEG1313', 'MEG1314', 'MEG1341']
+bads = ['EEG045', 'EEG023', 'EEG032', 'EEG024', 'EEG061', 'EEG020', 'EEG029',
+        'MEG1343', 'MEG1312', 'MEG1313', 'MEG1314', 'MEG1341']
+for bad in bads:
+    if bad in raw.ch_names:
+        raw.info['bads'] += [bad]
 
 # ##############################################################################
 # # Visually inspect the RAW data
@@ -63,4 +67,4 @@ raw.info['bads'] += ['EEG045', 'EEG023', 'EEG032', 'EEG024', 'EEG061', 'MEG1343'
 evoked = utils.get_maxfilter_data(subject_id=subject)
 # evoked.copy().crop(tmin=-6, tmax=2).plot()
 evoked.info['bads'] = raw.info['bads']
-evoked.copy().crop(tmin=-6, tmax=2).plot()
+evoked.copy().crop(tmin=-6, tmax=2).plot(time_unit='s')
