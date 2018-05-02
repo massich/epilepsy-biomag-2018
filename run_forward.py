@@ -3,15 +3,15 @@ import matplotlib.pyplot as plt
 import mne
 
 
-from config import subject_ids, subjects_dir
+from config import subject_ids, subjects_dir, mne_data_path
 import utils
+
 
 plt.close('all')
 
 subject = subject_ids[0]
 print('Processing subject: %s' % subject)
-trans_fname = os.path.join(subjects_dir, "..", "original_data", subject,
-                           "%s-trans.fif" % subject)
+trans_fname = os.path.join(mne_data_path, subject, "%s-trans.fif" % subject)
 
 bem_fname = os.path.join(subjects_dir, "..", "original_data", subject,
                          "%s-bem.fif" % subject)
