@@ -10,6 +10,9 @@ if host == 'toothless':
 elif user == 'alex':
     subjects_dir = '/Users/alex/work/data/retreat_project1/Biomag2018/freesurfer'
     mne_data_path = '/Users/alex/work/data/retreat_project1/Biomag2018/original_data'
+elif user == 'hichamjanati':
+    subjects_dir = '/Users/hichamjanati/Documents/ENSAE/Phd/INRIA/retreat/retreat2018/freesurfer'
+    mne_data_path = '/Users/hichamjanati/Documents/ENSAE/Phd/INRIA/retreat/retreat2018/Biomag2018'
 else:
     subjects_dir = '/storage/store/data/biomag_challenge/Biomag2018/freesurfer'
     mne_data_path = '/storage/store/data/biomag_challenge/Biomag2018/original_data'
