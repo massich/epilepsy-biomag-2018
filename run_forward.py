@@ -9,7 +9,7 @@ import utils
 
 plt.close('all')
 
-subject = subject_ids[0]
+subject = subject_ids[2]
 print('Processing subject: %s' % subject)
 trans_fname = os.path.join(mne_data_path, subject, "%s-trans.fif" % subject)
 

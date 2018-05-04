@@ -12,28 +12,63 @@ import mne
 from mne.datasets import sample
 from mne.minimum_norm import make_inverse_operator, apply_inverse
 
-# sphinx_gallery_thumbnail_number = 9
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+
+from config import subject_ids, subjects_dir
+import utils
+
+plt.close('all')
+
+subject = subject_ids[2]
+print('Processing subject: %s' % subject)
 
 ###############################################################################
 # Process MEG data
 
-data_path = sample.data_path()
-raw_fname = data_path + '/MEG/sample/sample_audvis_filt-0-40_raw.fif'
+evoked = utils.get_data(subject_id=subject, maxfilter=True)
 
-raw = mne.io.read_raw_fif(raw_fname)  # already has an average reference
-events = mne.find_events(raw, stim_channel='STI 014')
+##############################################################################
+# Exclude some channels
 
-event_id = dict(aud_r=1)  # event trigger and conditions
-tmin = -0.2  # start of each epoch (200ms before the trigger)
-tmax = 0.5  # end of each epoch (500ms after the trigger)
-raw.info['bads'] = ['MEG 2443', 'EEG 053']
+bads = {subject_ids[0]: ['EEG045', 'EEG023', 'EEG032', 'EEG024', 'EEG061',
+                         'EEG020', 'EEG029', 'EEG019', 'EEG009',
+                         'MEG1343', 'MEG1312', 'MEG1313', 'MEG1314',
+                         'MEG1341'],
+        subject_ids[1]: ['EEG033', 'EEG034',
+                         'EEG058', 'EEG064','EEG036', 'EEG051',
+                         'EEG023', 'EEG053','EEG049',
+                        ],
+        subject_ids[2]: ['EEG048', 'EEG063','EEG055', 'EEG062', 'EEG053', 'EEG064',
+                         'MEG1421', 'MEG1431', 'MEG1331', 'MEG1321', 'MEG1311', 'MEG1341', 'MEG1411', 'MEG2611', 'MEG2421', 'MEG2641', 'MEG1441',
+                         # 'MEG2341', 'MEG2411', # MAG but not sure if they should go in or out
+                         'MEG1412', 'MEG1413', 'MEG1442', # GRAD
+                         'MEG2413', 'MEG2422', 'MEG2423',
+                         'MEG1423', 'MEG1433', 'MEG1443', 'MEG1333', 'MEG1342', 'MEG1222', 'MEG2612', 'MEG2643', 'MEG2642', 'MEG2623',
+                        ],
+        }
+
+for bad in bads[subject]:
+    if bad in evoked.ch_names:
+        evoked.info['bads'] += [bad]
+
+time_of_interest = {subject_ids[0]: (-6, 2),
+                    subject_ids[1]: (-6, 2.5),
+                    subject_ids[2]: (-5, 5.2),
+                    }
+tmin, tmax = time_of_interest[subject]
+evoked.crop(tmin=tmin, tmax=tmax)
+
+raw = mne.io.RawArray(evoked.data, evoked.info)
+
 picks = mne.pick_types(raw.info, meg=True, eeg=False, eog=True,
                        exclude='bads')
 baseline = (None, 0)  # means from the first instant to t = 0
 reject = dict(grad=4000e-13, mag=4e-12, eog=150e-6)
 
-epochs = mne.Epochs(raw, events, event_id, tmin, tmax, proj=True, picks=picks,
-                    baseline=baseline, reject=reject)
+# epochs = mne.Epochs(raw, events, event_id, tmin, tmax, proj=True, picks=picks,
+#                     baseline=baseline, reject=reject)
 
 ###############################################################################
 # Compute regularized noise covariance
@@ -41,8 +76,9 @@ epochs = mne.Epochs(raw, events, event_id, tmin, tmax, proj=True, picks=picks,
 #
 # For more details see :ref:`tut_compute_covariance`.
 
-noise_cov = mne.compute_covariance(
-    epochs, tmax=0., method=['shrunk', 'empirical'])
+noise_cov = mne.compute_raw_covariance(raw)
+# noise_cov = mne.compute_covariance(
+#     raw, tmax=0., method=['shrunk', 'empirical'])
 
 fig_cov, fig_spectra = mne.viz.plot_cov(noise_cov, raw.info)
 
@@ -51,15 +87,15 @@ fig_cov, fig_spectra = mne.viz.plot_cov(noise_cov, raw.info)
 # ---------------------------
 # Let's just use MEG channels for simplicity.
 
-evoked = epochs.average().pick_types(meg=True)
-evoked.plot(time_unit='s')
+# evoked = epochs.average().pick_types(meg=True)
+xx = raw.copy().pick_types(meg=True)
+evoked = mne.EvokedArray(xx[:][0], info=xx.info)
+evoked.plot()
 evoked.plot_topomap(times=np.linspace(0.05, 0.15, 5), ch_type='mag',
                     time_unit='s')
 
 # Show whitening
 evoked.plot_white(noise_cov, time_unit='s')
-
-del epochs  # to save memory
 
 ###############################################################################
 # Inverse modeling: MNE/dSPM on evoked and raw data
