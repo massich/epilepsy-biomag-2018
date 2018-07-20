@@ -127,8 +127,7 @@ ica.plot_sources(raw)
 # Fit dipole to dipolar ICA component (option 2)
 
 ica_signal_to_reconstruct = {subject_ids[0]: 31,
-                             subject_ids[1]: 14,
-                             #subject_ids[1]: 16,
+                             subject_ids[1]: None,
                              subject_ids[2]: None,
                             }
 
