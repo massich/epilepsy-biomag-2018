@@ -83,7 +83,7 @@ fig2.savefig(fig_folder + '/%s_cov2.png' % subject)
 ##############################################################################
 # Run ICA to remove artifacts
 components = {subject_ids[0]: .98,
-              subject_ids[1]: .95,
+              subject_ids[1]: .98,
               subject_ids[2]: .98,
              }
 
