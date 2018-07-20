@@ -8,8 +8,10 @@ if host == 'toothless':
     subjects_dir = '/home/sik/retreat/Biomag2018/freesurfer'
     mne_data_path = '/home/sik/retreat/Biomag2018/original_data'
 elif user == 'alex':
-    subjects_dir = '/Users/alex/work/data/retreat_project1/Biomag2018/freesurfer'
-    mne_data_path = '/Users/alex/work/data/retreat_project1/Biomag2018/original_data'
+    subjects_dir = '/Users/alex/Dropbox/Biomag2018/freesurfer'
+    mne_data_path = '/Users/alex/Dropbox/Biomag2018/original_data'
+    # subjects_dir = '/Users/alex/work/data/retreat_project1/Biomag2018/freesurfer'
+    # mne_data_path = '/Users/alex/work/data/retreat_project1/Biomag2018/original_data'
 elif user == 'hichamjanati':
     subjects_dir = '/Users/hichamjanati/Documents/ENSAE/Phd/INRIA/retreat/retreat2018/freesurfer'
     mne_data_path = '/Users/hichamjanati/Documents/ENSAE/Phd/INRIA/retreat/retreat2018/Biomag2018'
