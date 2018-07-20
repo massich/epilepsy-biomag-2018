@@ -1,15 +1,19 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from mayavi import mlab
 import mne
 
 
-from config import subject_ids, subjects_dir
+from config import subject_ids, subjects_dir, mne_data_path
 import utils
 
 plt.close('all')
 
-subject = subject_ids[1]
+subject = subject_ids[0]
+fig_folder = os.path.join(mne_data_path, '..', 'figures', subject)
+evoked_clean_fname = os.path.join(mne_data_path, subject, '%s-ave.fif' % subject)
+trans_fname = os.path.join(mne_data_path, subject, "%s-trans.fif" % subject)
 print('Processing subject: %s' % subject)
 
 ##############################################################################
@@ -55,42 +59,26 @@ time_of_interest = {subject_ids[0]: (-6, 2),
 tmin, tmax = time_of_interest[subject]
 
 evoked.crop(tmin=tmin, tmax=tmax)
-# evoked.plot(time_unit='s')
+
+evoked.save(evoked_clean_fname)
+
+fig = evoked.plot(time_unit='s')
+fig.savefig(fig_folder + '/%s_evoked.png' % subject)
+
+maps = mne.make_field_map(evoked, trans=trans_fname, subject=subject,
+                          subjects_dir=subjects_dir, ch_type='meg',
+                          n_jobs=1)
+
+# # Finally, explore several points in time
+# field_map = evoked.plot_field(maps, time=1.667)
 
 ##############################################################################
 # Visualize the data covariance
 raw = mne.io.RawArray(evoked.data, evoked.info)
 cov = mne.compute_raw_covariance(raw)
-mne.viz.plot_cov(cov, raw.info)
-#
-# To clean the 'mag' or 'grad' variance, pick only those channels and then inspect the names
-# (remember that raw.pick_chanels changes the raw object)
-# raw = mne.io.RawArray(evoked.data, evoked.info)
-# cov = mne.compute_raw_covariance(raw.pick_types(meg='grad'))
-# mne.viz.plot_cov(cov, raw.info)
-# raw.info['ch_names'][xx]  # where xx is the index number of what has ben observed in the covariance matrix
-#
-# we can also explore the raw
-# raw.plot()
-# raw.plot_psd()
-
-
-
-# raw = mne.io.RawArray(evoked.data, evoked.info)
-# # To clean the 'mag' or 'grad' variance, pick only those channels and then inspect the names
-# cov = mne.compute_raw_covariance(raw.pick_types(meg='grad'))
-# mne.viz.plot_cov(cov, raw.info)
-# # raw.info['ch_names'][xx]  # where xx is the index number of what has ben observed in the covariance matrix
-# #
-# # def _get_sensor_name_from_covariance_indx(indices):
-# #     return [raw.info['ch_names'][xx] for xx in indices]
-# sensors=[178,]
-# _get_sensor_name_from_covariance_indx(sensors)
-# #
-# # we can also explore the raw
-# # raw.plot()
-# # raw.plot_psd()
-
+fig1, fig2 = mne.viz.plot_cov(cov, raw.info)
+fig1.savefig(fig_folder + '/%s_cov1.png' % subject)
+fig2.savefig(fig_folder + '/%s_cov2.png' % subject)
 
 ##############################################################################
 # Run ICA to remove artifacts
@@ -114,10 +102,11 @@ ica.exclude = exclude[subject]
 ica.plot_components(ch_type='mag')
 ica.plot_sources(raw)
 
-evoked_clean = ica.apply(evoked)
-evoked_clean.plot(time_unit='s')
-# ica.fit(raw.copy().pick_types(meg='mag'))
-# ica.fit(raw.copy().pick_types(meg='grad'))
+# evoked_clean = ica.apply(evoked)
+# evoked_clean.plot(time_unit='s')
+
+# # ica.fit(raw.copy().pick_types(meg='mag'))
+# # ica.fit(raw.copy().pick_types(meg='grad'))
 
 ##############################################################################
 # Fit dipole to dipolar ICA component (option 1 with grads only)
@@ -143,18 +132,31 @@ ica_signal_to_reconstruct = {subject_ids[0]: 31,
                              subject_ids[2]: None,
                             }
 
-ica.exclude = list(np.setdiff1d(np.arange(ica.n_components_),
-                                ica_signal_to_reconstruct[subject]))
-# ica.exclude = list(np.setdiff1d(np.arange(ica.n_components_), 29))
-evoked_components = ica.apply(evoked).pick_types(meg=True)
+ica1 = ica.copy()
+ica1.exclude = list(np.setdiff1d(np.arange(ica1.n_components_),
+                                 ica_signal_to_reconstruct[subject]))
+evoked_components = ica1.apply(evoked).pick_types(meg=True)
+fig = evoked_components.plot()
+fig.savefig(fig_folder + '/%s_evoked_ica_comp.png' % subject)
+
 raw_tmp = mne.io.RawArray(evoked_components.data, evoked.info)
-noise_cov = mne.compute_raw_covariance(raw_tmp, tmin=0., tmax=6., method='diagonal_fixed')
+noise_cov = mne.compute_raw_covariance(raw_tmp, tmin=0., tmax=6.,
+                                       method='diagonal_fixed')
 
 trans_fname = os.path.join(subjects_dir, "..", "original_data", subject,
                            "%s-trans.fif" % subject)
 bem_fname = os.path.join(subjects_dir, "..", "original_data", subject,
                          "%s-bem.fif" % subject)
 t_max = evoked_components.times[np.argmax(np.abs(evoked_components.data).sum(0))]
-dip, residual = mne.fit_dipole(evoked_components.copy().crop(t_max, t_max),
+
+evoked_dip = evoked_components.copy().crop(t_max, t_max)
+
+# Finally, explore several points in time
+field_map = evoked_dip.plot_field(maps, time=t_max)
+field_map.scene.x_minus_view()
+mlab.savefig(fig_folder + '/%s_ica_comp_topo.png' % subject)
+
+dip, residual = mne.fit_dipole(evoked_dip,
                                noise_cov, bem_fname, trans_fname)
-dip.plot_locations(trans_fname, subject=subject, subjects_dir=subjects_dir)
+fig = dip.plot_locations(trans_fname, subject=subject, subjects_dir=subjects_dir)
+fig.savefig(fig_folder + '/%s_dip_fit.png' % subject)
