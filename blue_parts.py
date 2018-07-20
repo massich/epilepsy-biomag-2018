@@ -9,7 +9,7 @@ import utils
 
 plt.close('all')
 
-subject = subject_ids[2]
+subject = subject_ids[1]
 print('Processing subject: %s' % subject)
 
 ##############################################################################
@@ -27,6 +27,10 @@ bads = {subject_ids[0]: ['EEG045', 'EEG023', 'EEG032', 'EEG024', 'EEG061',
         subject_ids[1]: ['EEG033', 'EEG034',
                          'EEG058', 'EEG064','EEG036', 'EEG051',
                          'EEG023', 'EEG053','EEG049',
+                         'MEG2613', 'MEG2622', 'MEG1432', 'MEG1433', 'MEG0113', #GRAD
+                         'MEG0122', 'MEG0123', 'MEG0132', 'MEG0143', 'MEG1323', #GRAD
+                         'MEG1332', 'MEG1423', 'MEG1512', 'MEG1513', 'MEG1522', #GRAD
+                         'MEG1533', 'MEG1542', 'MEG1543', 'MEG2623', 'MEG2643', #GRAD
                         ],
         subject_ids[2]: ['EEG048', 'EEG063','EEG055', 'EEG062', 'EEG053', 'EEG064',
                          'MEG1421', 'MEG1431', 'MEG1331', 'MEG1321', 'MEG1311', 'MEG1341', 'MEG1411', 'MEG2611', 'MEG2421', 'MEG2641', 'MEG1441',
@@ -51,7 +55,7 @@ time_of_interest = {subject_ids[0]: (-6, 2),
 tmin, tmax = time_of_interest[subject]
 
 evoked.crop(tmin=tmin, tmax=tmax)
-evoked.plot(time_unit='s')
+# evoked.plot(time_unit='s')
 
 ##############################################################################
 # Visualize the data covariance
@@ -60,7 +64,10 @@ cov = mne.compute_raw_covariance(raw)
 mne.viz.plot_cov(cov, raw.info)
 #
 # To clean the 'mag' or 'grad' variance, pick only those channels and then inspect the names
-# cov = mne.compute_raw_covariance(raw.pick_types(meg='mag'))
+# (remember that raw.pick_chanels changes the raw object)
+# raw = mne.io.RawArray(evoked.data, evoked.info)
+# cov = mne.compute_raw_covariance(raw.pick_types(meg='grad'))
+# mne.viz.plot_cov(cov, raw.info)
 # raw.info['ch_names'][xx]  # where xx is the index number of what has ben observed in the covariance matrix
 #
 # we can also explore the raw
@@ -130,7 +137,14 @@ evoked_clean.plot(time_unit='s')
 ##############################################################################
 # Fit dipole to dipolar ICA component (option 2)
 
-ica.exclude = list(np.setdiff1d(np.arange(ica.n_components_), 31))
+ica_signal_to_reconstruct = {subject_ids[0]: 31,
+                             subject_ids[1]: 14,
+                             #subject_ids[1]: 16,
+                             subject_ids[2]: None,
+                            }
+
+ica.exclude = list(np.setdiff1d(np.arange(ica.n_components_),
+                                ica_signal_to_reconstruct[subject]))
 # ica.exclude = list(np.setdiff1d(np.arange(ica.n_components_), 29))
 evoked_components = ica.apply(evoked).pick_types(meg=True)
 raw_tmp = mne.io.RawArray(evoked_components.data, evoked.info)
