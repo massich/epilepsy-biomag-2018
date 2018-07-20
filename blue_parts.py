@@ -10,7 +10,7 @@ import utils
 
 plt.close('all')
 
-subject = subject_ids[0]
+subject = subject_ids[1]
 fig_folder = os.path.join(mne_data_path, '..', 'figures', subject)
 evoked_clean_fname = os.path.join(mne_data_path, subject, '%s-ave.fif' % subject)
 trans_fname = os.path.join(mne_data_path, subject, "%s-trans.fif" % subject)
