@@ -10,7 +10,7 @@ import utils
 
 plt.close('all')
 
-subject = subject_ids[1]
+subject = subject_ids[2]
 fig_folder = os.path.join(mne_data_path, '..', 'figures', subject)
 evoked_clean_fname = os.path.join(mne_data_path, subject, '%s-ave.fif' % subject)
 trans_fname = os.path.join(mne_data_path, subject, "%s-trans.fif" % subject)
@@ -31,10 +31,10 @@ bads = {subject_ids[0]: ['EEG045', 'EEG023', 'EEG032', 'EEG024', 'EEG061',
         subject_ids[1]: ['EEG033', 'EEG034',
                          'EEG058', 'EEG064','EEG036', 'EEG051',
                          'EEG023', 'EEG053','EEG049',
-                         'MEG2613', 'MEG2622', 'MEG1432', 'MEG1433', 'MEG0113', #GRAD
-                         'MEG0122', 'MEG0123', 'MEG0132', 'MEG0143', 'MEG1323', #GRAD
-                         'MEG1332', 'MEG1423', 'MEG1512', 'MEG1513', 'MEG1522', #GRAD
-                         'MEG1533', 'MEG1542', 'MEG1543', 'MEG2623', 'MEG2643', #GRAD
+                        'MEG2613', 'MEG2622', 'MEG1432', 'MEG1433', 'MEG0113', #GRAD
+                        'MEG0122', 'MEG0123', 'MEG0132', 'MEG0143', 'MEG1323', #GRAD
+                        'MEG1332', 'MEG1423', 'MEG1512', 'MEG1513', 'MEG1522', #GRAD
+                        'MEG1533', 'MEG1542', 'MEG1543', 'MEG2623', 'MEG2643', #GRAD
                         ],
         subject_ids[2]: ['EEG048', 'EEG063','EEG055', 'EEG062', 'EEG053', 'EEG064',
                          'MEG1421', 'MEG1431', 'MEG1331', 'MEG1321', 'MEG1311', 'MEG1341', 'MEG1411', 'MEG2611', 'MEG2421', 'MEG2641', 'MEG1441',
@@ -45,10 +45,30 @@ bads = {subject_ids[0]: ['EEG045', 'EEG023', 'EEG032', 'EEG024', 'EEG061',
                         ],
         }
 
+
+########
+# This commented section is almost surely wrong
+
+# Function to exclude bad grad channels with high variance
+# def get_bad_channels(cov, perc=100):
+#     diag = cov.data.diagonal()
+#     threshold = np.percentile(diag, perc)
+#     idx = np.where(diag < threshold)[0]
+#     return idx
+
+# raw = mne.io.RawArray(evoked.data, evoked.info)
+# cov = mne.compute_raw_covariance(raw.copy().pick_types(meg="grad"))
+# bad_channels_indx = get_bad_channels(cov, perc=99)
+# bad_channels = np.array(evoked.ch_names)[bad_channels_indx]
+
+########
+
 for bad in bads[subject]:
     if bad in evoked.ch_names:
         evoked.info['bads'] += [bad]
 
+# for idx in bad_channels_indx:
+#     evoked.info['bads'] += [evoked.ch_names[idx]]
 ##############################################################################
 # Visualize the data
 
@@ -80,12 +100,13 @@ fig1, fig2 = mne.viz.plot_cov(cov, raw.info)
 fig1.savefig(fig_folder + '/%s_cov1.png' % subject)
 fig2.savefig(fig_folder + '/%s_cov2.png' % subject)
 
+
 ##############################################################################
 # Run ICA to remove artifacts
 components = {subject_ids[0]: .98,
               subject_ids[1]: .98,
               subject_ids[2]: .98,
-             }
+              }
 
 method = 'picard'
 method = 'fastica'
@@ -95,8 +116,8 @@ ica = mne.preprocessing.ICA(n_components=components[subject], method=method,
 ica.fit(raw.copy().pick_types(meg=True))
 
 exclude = {subject_ids[0]: [0, 32],
-           subject_ids[1]: [],
-           subject_ids[2]: [],
+           subject_ids[1]: [7],
+           subject_ids[2]: [23],
            }
 ica.exclude = exclude[subject]
 ica.plot_components(ch_type='mag')
@@ -127,8 +148,8 @@ ica.plot_sources(raw)
 # Fit dipole to dipolar ICA component (option 2)
 
 ica_signal_to_reconstruct = {subject_ids[0]: 31,
-                             subject_ids[1]: None,
-                             subject_ids[2]: None,
+                             subject_ids[1]: 15,
+                             subject_ids[2]: 21,
                             }
 
 ica1 = ica.copy()
