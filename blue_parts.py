@@ -100,6 +100,36 @@ fig1, fig2 = mne.viz.plot_cov(cov, raw.info)
 fig1.savefig(fig_folder + '/%s_cov1.png' % subject)
 fig2.savefig(fig_folder + '/%s_cov2.png' % subject)
 
+#   #------------------------------------------------------
+#   # This is how to clean the covariance !!! do not remove
+#   #------------------------------------------------------
+#
+# To clean the 'mag' or 'grad' variance, pick only those channels and then inspect the names
+# (remember that raw.pick_chanels changes the raw object)
+# raw = mne.io.RawArray(evoked.data, evoked.info)
+# cov = mne.compute_raw_covariance(raw.pick_types(meg='grad'))
+# mne.viz.plot_cov(cov, raw.info)
+# raw.info['ch_names'][xx]  # where xx is the index number of what has ben observed in the covariance matrix
+#
+# we can also explore the raw
+# raw.plot()
+# raw.plot_psd()
+#
+#
+# raw = mne.io.RawArray(evoked.data, evoked.info)
+# # To clean the 'mag' or 'grad' variance, pick only those channels and then inspect the names
+# cov = mne.compute_raw_covariance(raw.pick_types(meg='grad'))
+# mne.viz.plot_cov(cov, raw.info)
+# # raw.info['ch_names'][xx]  # where xx is the index number of what has ben observed in the covariance matrix
+# #
+# # def _get_sensor_name_from_covariance_indx(indices):
+# #     return [raw.info['ch_names'][xx] for xx in indices]
+# sensors=[178,]
+# _get_sensor_name_from_covariance_indx(sensors)
+# #
+# # we can also explore the raw
+# # raw.plot()
+# # raw.plot_psd()
 
 ##############################################################################
 # Run ICA to remove artifacts
