@@ -43,11 +43,10 @@ bads = {subject_ids[0]: ['EEG045', 'EEG023', 'EEG032', 'EEG024', 'EEG061',
                          # 'MEG2413', 'MEG2422', 'MEG2423',
                          # 'MEG1423', 'MEG1433', 'MEG1443', 'MEG1333', 'MEG1342', 'MEG1222', 'MEG2612', 'MEG2643', 'MEG2642', 'MEG2623',
                          # 'MEG1322', 'MEG1323', 'MEG1332', 'MEG0313'],
-                         'MEG0143', 'MEG0212', 'MEG0222', 'MEG0231', 'MEG0233', 'MEG0243', 'MEG0311', 'MEG0312',
-                         'MEG0313', 'MEG0321', 'MEG0412', 'MEG0432', 'MEG0632', 'MEG0813',
-                         'MEG0921', 'MEG0922', 'MEG0941', 'MEG0942', 'MEG0943', 'MEG1011',
-                         'MEG1012', 'MEG1013', 'MEG1021', 'MEG1022', 'MEG1023', 'MEG1042',
-                         'MEG1043', 'MEG1112']      }
+                          'MEG1222', 'MEG1322', 'MEG1323', 'MEG1333', 'MEG1342', 'MEG1412',
+                          'MEG1413', 'MEG1423', 'MEG1433', 'MEG1442', 'MEG1443', 'MEG2413',
+                          'MEG2422', 'MEG2423', 'MEG2433', 'MEG2612', 'MEG2613', 'MEG2623',
+                          'MEG2642']      }
 
 
 ########
@@ -62,7 +61,7 @@ def get_bad_channels(cov, perc=100):
 
 
 def _get_sensor_name_from_covariance_indx(indices):
-    return [raw.info['ch_names'][xx] for xx in indices]
+    return [raw.copy().pick_types(meg="grad").info['ch_names'][xx] for xx in indices]
 
 
 ########
@@ -78,7 +77,7 @@ for bad in bads[subject]:
 
 time_of_interest = {subject_ids[0]: (-6, 2),
                     subject_ids[1]: (-6, 3),
-                    subject_ids[2]: (-5, 5.5),
+                    subject_ids[2]: (-4, 4),
                     }
 tmin, tmax = time_of_interest[subject]
 
@@ -128,7 +127,7 @@ fig2.savefig(fig_folder + '/%s_cov2.png' % subject)
 
 # raw = mne.io.RawArray(evoked.data, evoked.info)
 # cov = mne.compute_raw_covariance(raw.pick_types(meg='grad'))
-# bad_channels_indx = get_bad_channels(cov, perc=85)
+# bad_channels_indx = get_bad_channels(cov, perc=90)
 # bad_channels = _get_sensor_name_from_covariance_indx(bad_channels_indx)
 # print(bad_channels)
 # 0 / 0
@@ -187,7 +186,7 @@ ica.plot_sources(raw)
 
 ica_signal_to_reconstruct = {subject_ids[0]: 33,
                              subject_ids[1]: 36,
-                             subject_ids[2]: 18,
+                             subject_ids[2]: 7,
                             }
 fig = ica.plot_components(ch_type='mag', picks=[ica_signal_to_reconstruct[subject]])
 fig.savefig(fig_folder + '/%s_ica_comp_topo_2d.png' % subject)
