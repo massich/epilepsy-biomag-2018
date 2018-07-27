@@ -10,7 +10,7 @@ import utils
 
 plt.close('all')
 
-subject = subject_ids[1]
+subject = subject_ids[2]
 fig_folder = os.path.join(mne_data_path, '..', 'figures', subject)
 evoked_clean_fname = os.path.join(mne_data_path, subject, '%s-ave.fif' % subject)
 trans_fname = os.path.join(mne_data_path, subject, "%s-trans.fif" % subject)
@@ -21,7 +21,7 @@ print('Processing subject: %s' % subject)
 
 evoked = utils.get_data(subject_id=subject, maxfilter=True)
 
-##############################################################################
+##################################e############################################
 # Exclude some channels
 
 bads = {subject_ids[0]: ['EEG045', 'EEG023', 'EEG032', 'EEG024', 'EEG061',
@@ -73,8 +73,8 @@ for bad in bads[subject]:
 # Visualize the data
 
 time_of_interest = {subject_ids[0]: (-6, 2),
-                    subject_ids[1]: (-6, 2.5),
-                    subject_ids[2]: (-5, 5.2),
+                    subject_ids[1]: (-6, 3),
+                    subject_ids[2]: (-5, 6),
                     }
 tmin, tmax = time_of_interest[subject]
 
@@ -133,27 +133,27 @@ fig2.savefig(fig_folder + '/%s_cov2.png' % subject)
 
 ##############################################################################
 # Run ICA to remove artifacts
-components = {subject_ids[0]: .98,
-              subject_ids[1]: .98,
-              subject_ids[2]: .98,
-              }
 
 method = 'picard'
 method = 'fastica'
-ica = mne.preprocessing.ICA(n_components=raw.pick_types(meg=True).estimate_rank(),
+
+meg_maxfilter_rank = raw.copy().pick_types(meg=True).estimate_rank()
+# meg_maxfilter_rank = 0.98
+ica = mne.preprocessing.ICA(n_components=meg_maxfilter_rank,
                             method=method,
                             random_state=42)
 
 ica.fit(raw.copy().pick_types(meg=True))
 
 exclude = {subject_ids[0]: [0, 32],
-           subject_ids[1]: [7],
-           subject_ids[2]: [23],
+           subject_ids[1]: [],
+           subject_ids[2]: [],
            }
 ica.exclude = exclude[subject]
 ica.plot_components(ch_type='mag')
 ica.plot_sources(raw)
 
+0 / 0
 # evoked_clean = ica.apply(evoked)
 # evoked_clean.plot(time_unit='s')
 
@@ -178,11 +178,12 @@ ica.plot_sources(raw)
 ##############################################################################
 # Fit dipole to dipolar ICA component (option 2)
 
-ica_signal_to_reconstruct = {subject_ids[0]: 31,
-                             subject_ids[1]: 15,
-                             subject_ids[2]: 21,
+ica_signal_to_reconstruct = {subject_ids[0]: 33,
+                             subject_ids[1]: 36,
+                             subject_ids[2]: 18,
                             }
-
+fig = ica.plot_components(ch_type='mag', picks=[ica_signal_to_reconstruct[subject]])
+fig.savefig(fig_folder + '/%s_ica_comp_topo_2d.png' % subject)
 ica1 = ica.copy()
 ica1.exclude = list(np.setdiff1d(np.arange(ica1.n_components_),
                                  ica_signal_to_reconstruct[subject]))
