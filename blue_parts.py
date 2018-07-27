@@ -38,28 +38,32 @@ bads = {subject_ids[0]: ['EEG045', 'EEG023', 'EEG032', 'EEG024', 'EEG061',
                         ],
         subject_ids[2]: ['EEG048', 'EEG063','EEG055', 'EEG062', 'EEG053', 'EEG064',
                          'MEG1421', 'MEG1431', 'MEG1331', 'MEG1321', 'MEG1311', 'MEG1341', 'MEG1411', 'MEG2611', 'MEG2421', 'MEG2641', 'MEG1441',
-                         # 'MEG2341', 'MEG2411', # MAG but not sure if they should go in or out
-                         'MEG1412', 'MEG1413', 'MEG1442', # GRAD
-                         'MEG2413', 'MEG2422', 'MEG2423',
-                         'MEG1423', 'MEG1433', 'MEG1443', 'MEG1333', 'MEG1342', 'MEG1222', 'MEG2612', 'MEG2643', 'MEG2642', 'MEG2623',
-                        ],
-        }
+                         'MEG2341', 'MEG2411', # MAG but not sure if they should go in or out
+                         # 'MEG1412', 'MEG1413', 'MEG1442', # GRAD
+                         # 'MEG2413', 'MEG2422', 'MEG2423',
+                         # 'MEG1423', 'MEG1433', 'MEG1443', 'MEG1333', 'MEG1342', 'MEG1222', 'MEG2612', 'MEG2643', 'MEG2642', 'MEG2623',
+                         # 'MEG1322', 'MEG1323', 'MEG1332', 'MEG0313'],
+                         'MEG0143', 'MEG0212', 'MEG0222', 'MEG0231', 'MEG0233', 'MEG0243', 'MEG0311', 'MEG0312',
+                         'MEG0313', 'MEG0321', 'MEG0412', 'MEG0432', 'MEG0632', 'MEG0813',
+                         'MEG0921', 'MEG0922', 'MEG0941', 'MEG0942', 'MEG0943', 'MEG1011',
+                         'MEG1012', 'MEG1013', 'MEG1021', 'MEG1022', 'MEG1023', 'MEG1042',
+                         'MEG1043', 'MEG1112']      }
 
 
 ########
 # This commented section is almost surely wrong
 
 # Function to exclude bad grad channels with high variance
-# def get_bad_channels(cov, perc=100):
-#     diag = cov.data.diagonal()
-#     threshold = np.percentile(diag, perc)
-#     idx = np.where(diag < threshold)[0]
-#     return idx
+def get_bad_channels(cov, perc=100):
+    diag = cov.data.diagonal()
+    threshold = np.percentile(diag, perc)
+    idx = np.where(diag > threshold)[0]
+    return idx
 
-# raw = mne.io.RawArray(evoked.data, evoked.info)
-# cov = mne.compute_raw_covariance(raw.copy().pick_types(meg="grad"))
-# bad_channels_indx = get_bad_channels(cov, perc=99)
-# bad_channels = np.array(evoked.ch_names)[bad_channels_indx]
+
+def _get_sensor_name_from_covariance_indx(indices):
+    return [raw.info['ch_names'][xx] for xx in indices]
+
 
 ########
 
@@ -74,7 +78,7 @@ for bad in bads[subject]:
 
 time_of_interest = {subject_ids[0]: (-6, 2),
                     subject_ids[1]: (-6, 3),
-                    subject_ids[2]: (-5, 6),
+                    subject_ids[2]: (-5, 5.5),
                     }
 tmin, tmax = time_of_interest[subject]
 
@@ -110,7 +114,7 @@ fig2.savefig(fig_folder + '/%s_cov2.png' % subject)
 # cov = mne.compute_raw_covariance(raw.pick_types(meg='grad'))
 # mne.viz.plot_cov(cov, raw.info)
 # raw.info['ch_names'][xx]  # where xx is the index number of what has ben observed in the covariance matrix
-#
+
 # we can also explore the raw
 # raw.plot()
 # raw.plot_psd()
@@ -121,10 +125,13 @@ fig2.savefig(fig_folder + '/%s_cov2.png' % subject)
 # cov = mne.compute_raw_covariance(raw.pick_types(meg='grad'))
 # mne.viz.plot_cov(cov, raw.info)
 # # raw.info['ch_names'][xx]  # where xx is the index number of what has ben observed in the covariance matrix
-# #
-# # def _get_sensor_name_from_covariance_indx(indices):
-# #     return [raw.info['ch_names'][xx] for xx in indices]
-# sensors=[178,]
+
+# raw = mne.io.RawArray(evoked.data, evoked.info)
+# cov = mne.compute_raw_covariance(raw.pick_types(meg='grad'))
+# bad_channels_indx = get_bad_channels(cov, perc=85)
+# bad_channels = _get_sensor_name_from_covariance_indx(bad_channels_indx)
+# print(bad_channels)
+# 0 / 0
 # _get_sensor_name_from_covariance_indx(sensors)
 # #
 # # we can also explore the raw
@@ -134,8 +141,9 @@ fig2.savefig(fig_folder + '/%s_cov2.png' % subject)
 ##############################################################################
 # Run ICA to remove artifacts
 
+
 method = 'picard'
-method = 'fastica'
+# method = 'fastica'
 
 meg_maxfilter_rank = raw.copy().pick_types(meg=True).estimate_rank()
 # meg_maxfilter_rank = 0.98
@@ -152,7 +160,6 @@ exclude = {subject_ids[0]: [0, 32],
 ica.exclude = exclude[subject]
 ica.plot_components(ch_type='mag')
 ica.plot_sources(raw)
-
 0 / 0
 # evoked_clean = ica.apply(evoked)
 # evoked_clean.plot(time_unit='s')
