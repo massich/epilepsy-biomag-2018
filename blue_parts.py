@@ -60,8 +60,8 @@ def get_bad_channels(cov, perc=100):
     return idx
 
 
-def _get_sensor_name_from_covariance_indx(indices):
-    return [raw.copy().pick_types(meg="grad").info['ch_names'][xx] for xx in indices]
+def _get_sensor_name_from_covariance_indx(indices, meg_type="grad"):
+    return [raw.copy().pick_types(meg=meg_type).info['ch_names'][xx] for xx in indices]
 
 
 ########
