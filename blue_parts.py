@@ -10,7 +10,7 @@ import utils
 
 plt.close('all')
 
-subject = subject_ids[2]
+subject = subject_ids[1]
 fig_folder = os.path.join(mne_data_path, '..', 'figures', subject)
 evoked_clean_fname = os.path.join(mne_data_path, subject, '%s-ave.fif' % subject)
 trans_fname = os.path.join(mne_data_path, subject, "%s-trans.fif" % subject)
@@ -140,7 +140,8 @@ components = {subject_ids[0]: .98,
 
 method = 'picard'
 method = 'fastica'
-ica = mne.preprocessing.ICA(n_components=components[subject], method=method,
+ica = mne.preprocessing.ICA(n_components=raw.pick_types(meg=True).estimate_rank(),
+                            method=method,
                             random_state=42)
 
 ica.fit(raw.copy().pick_types(meg=True))
