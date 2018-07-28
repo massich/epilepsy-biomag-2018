@@ -10,7 +10,7 @@ import utils
 
 plt.close('all')
 
-subject = subject_ids[0]
+subject = subject_ids[1]
 fig_folder = os.path.join(mne_data_path, '..', 'figures', subject)
 evoked_clean_fname = os.path.join(mne_data_path, subject, '%s-ave.fif' % subject)
 trans_fname = os.path.join(mne_data_path, subject, "%s-trans.fif" % subject)
@@ -31,10 +31,12 @@ bads = {subject_ids[0]: ['EEG045', 'EEG023', 'EEG032', 'EEG024', 'EEG061',
         subject_ids[1]: ['EEG033', 'EEG034',
                          'EEG058', 'EEG064','EEG036', 'EEG051',
                          'EEG023', 'EEG053','EEG049',
+                         'EEG042', 'EEG055',
                         'MEG2613', 'MEG2622', 'MEG1432', 'MEG1433', 'MEG0113', #GRAD
                         'MEG0122', 'MEG0123', 'MEG0132', 'MEG0143', 'MEG1323', #GRAD
                         'MEG1332', 'MEG1423', 'MEG1512', 'MEG1513', 'MEG1522', #GRAD
                         'MEG1533', 'MEG1542', 'MEG1543', 'MEG2623', 'MEG2643', #GRAD
+                         'MEG1443',
                         ],
         subject_ids[2]: ['EEG048', 'EEG063','EEG055', 'EEG062', 'EEG053', 'EEG064',
                          'MEG1421', 'MEG1431', 'MEG1331', 'MEG1321', 'MEG1311', 'MEG1341', 'MEG1411', 'MEG2611', 'MEG2421', 'MEG2641', 'MEG1441',
@@ -185,7 +187,7 @@ ica.plot_sources(raw)
 # Fit dipole to dipolar ICA component (option 2)
 
 ica_signal_to_reconstruct = {subject_ids[0]: 33,
-                             subject_ids[1]: 36,
+                             subject_ids[1]: 35,
                              subject_ids[2]: 7,
                             }
 fig = ica.plot_components(ch_type='mag', picks=[ica_signal_to_reconstruct[subject]])
