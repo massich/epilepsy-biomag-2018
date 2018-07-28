@@ -12,7 +12,7 @@ import utils
 
 plt.close('all')
 
-subject = subject_ids[2]
+subject = subject_ids[0]
 fig_folder = os.path.join(mne_data_path, '..', 'figures', subject)
 evoked_clean_fname = os.path.join(mne_data_path, subject, '%s-ave.fif' % subject)
 trans_fname = os.path.join(mne_data_path, subject, "%s-trans.fif" % subject)
@@ -92,14 +92,20 @@ fwd = mne.read_forward_solution(fwd_fname)
 inverse_operator = make_inverse_operator(evoked.info, fwd, cov, loose=0.2,
                                          depth=0.8)
 stc = apply_inverse(evoked, inverse_operator)
-hemi = 'rh'
-vertno_max, time_max = stc.get_peak(hemi=hemi)
 
-surfer_default_kwargs = dict(hemi=hemi,
+hemi =  {subject_ids[0]: 'lh',
+         subject_ids[1]: 'rh',
+         subject_ids[2]: 'rh',
+        }
+
+vertno_max, time_max = stc.get_peak(hemi=hemi[subject])
+
+surfer_default_kwargs = dict(
                              subjects_dir=subjects_dir,
+                             # hemi=hemi,
                              # clim=dict(kind='value', lims=[8, 12, 15]),
                              views='lateral',
-                             initial_time=time_max,
+                             # initial_time=time_max,
                              time_unit='s',
                              size=(800, 800),
                              smoothing_steps=5,
@@ -110,7 +116,16 @@ def _get_clim(min, max):
     middle = 0.5*(max-min)+min
     return dict(kind='value', lims=[min, middle, max])
 
+initial_time = {subject_ids[0]: time_max,
+                subject_ids[1]: time_max,
+                subject_ids[2]: time_max,
+               }
+
 brain = stc.plot(clim=_get_clim(stc.data.min(), stc.data.max()),
+                 initial_time=initial_time[subject],
+                 hemi=hemi[subject],
+                 # hemi=hemi[subject],
                  **surfer_default_kwargs)
-brain.add_foci(vertno_max, coords_as_verts=True, hemi=hemi, color='blue',
+
+brain.add_foci(vertno_max, coords_as_verts=True, hemi=hemi[subject], color='blue',
               scale_factor=0.6, alpha=0.5)
