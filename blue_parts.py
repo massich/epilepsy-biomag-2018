@@ -1,9 +1,10 @@
 import os
 import numpy as np
+from scipy import linalg
 import matplotlib.pyplot as plt
 from mayavi import mlab
 import mne
-
+import nibabel as nib
 
 from config import subject_ids, subjects_dir, mne_data_path
 import utils
@@ -227,3 +228,26 @@ dip, residual = mne.fit_dipole(evoked_dip,
                                noise_cov, bem_fname, trans_fname)
 fig = dip.plot_locations(trans_fname, subject=subject, subjects_dir=subjects_dir)
 fig.savefig(fig_folder + '/%s_dip_fit.png' % subject)
+
+mni_pos = mne.head_to_mni(dip.pos, mri_head_t=trans,
+                          subject=subject, subjects_dir=subjects_dir)
+
+trans = mne.read_trans(trans_fname)
+mri_pos = mne.transforms.apply_trans(trans, dip.pos) * 1e3
+t1_fname = os.path.join(subjects_dir, subject, 'mri', 'T1.mgz')
+t1 = nib.load(t1_fname)
+vox2ras_tkr = t1.header.get_vox2ras_tkr()
+ras2vox_tkr = linalg.inv(vox2ras_tkr)
+vox2ras = t1.header.get_vox2ras()
+mri_pos = mne.transforms.apply_trans(ras2vox_tkr, mri_pos)  # in vox
+mri_pos = mne.transforms.apply_trans(vox2ras, mri_pos)  # in RAS
+
+from nilearn.plotting import plot_anat
+from nilearn.datasets import load_mni152_template
+
+fig = plot_anat(t1_fname, cut_coords=mri_pos[0], title='Subj: %s' % subject)
+fig.savefig(fig_folder + '/%s_mri_coord.png' % subject)
+
+template = load_mni152_template()
+fig = plot_anat(template, cut_coords=mni_pos[0], title='Subj: %s (MNI Space)' % subject)
+fig.savefig(fig_folder + '/%s_mni_coord.png' % subject)
