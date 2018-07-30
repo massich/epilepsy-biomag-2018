@@ -10,7 +10,7 @@ import utils
 
 plt.close('all')
 
-subject = subject_ids[1]
+subject = subject_ids[2]
 fig_folder = os.path.join(mne_data_path, '..', 'figures', subject)
 evoked_clean_fname = os.path.join(mne_data_path, subject, '%s-ave.fif' % subject)
 trans_fname = os.path.join(mne_data_path, subject, "%s-trans.fif" % subject)
@@ -48,7 +48,14 @@ bads = {subject_ids[0]: ['EEG045', 'EEG023', 'EEG032', 'EEG024', 'EEG061',
                           'MEG1222', 'MEG1322', 'MEG1323', 'MEG1333', 'MEG1342', 'MEG1412',
                           'MEG1413', 'MEG1423', 'MEG1433', 'MEG1442', 'MEG1443', 'MEG2413',
                           'MEG2422', 'MEG2423', 'MEG2433', 'MEG2612', 'MEG2613', 'MEG2623',
-                          'MEG2642']      }
+                          'MEG2642',
+                          'MEG1133', 'MEG1223', 'MEG1312', 'MEG1313',  # grad from no croping
+                          'MEG1332', 'MEG1343', 'MEG1422', 'MEG1432',  # grad from no croping
+                          'MEG2222', 'MEG2323', 'MEG2412', 'MEG2432',  # grad from no croping
+                          'MEG2512', 'MEG2513', 'MEG2522', 'MEG2523',  # grad from no croping
+                          'MEG2622', 'MEG2633', 'MEG2643',             # grad from no croping
+                          'MEG0143', 'MEG1543', 'MEG1223', 'MEG1713',  # removed as outlier with no crop and psd analysis
+        ]      }
 
 
 ########
@@ -79,7 +86,7 @@ for bad in bads[subject]:
 
 time_of_interest = {subject_ids[0]: (-6, 2),
                     subject_ids[1]: (-6, 3),
-                    subject_ids[2]: (-4, 4),
+                    subject_ids[2]: (None, None),
                     }
 tmin, tmax = time_of_interest[subject]
 
@@ -188,7 +195,7 @@ ica.plot_sources(raw)
 
 ica_signal_to_reconstruct = {subject_ids[0]: 33,
                              subject_ids[1]: 35,
-                             subject_ids[2]: 7,
+                             subject_ids[2]: 23,
                             }
 fig = ica.plot_components(ch_type='mag', picks=[ica_signal_to_reconstruct[subject]])
 fig.savefig(fig_folder + '/%s_ica_comp_topo_2d.png' % subject)
