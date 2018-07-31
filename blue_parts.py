@@ -11,7 +11,7 @@ import utils
 
 plt.close('all')
 
-subject = subject_ids[2]
+subject = subject_ids[0]
 fig_folder = os.path.join(mne_data_path, '..', 'figures', subject)
 evoked_clean_fname = os.path.join(mne_data_path, subject, '%s-ave.fif' % subject)
 trans_fname = os.path.join(mne_data_path, subject, "%s-trans.fif" % subject)
@@ -229,10 +229,10 @@ dip, residual = mne.fit_dipole(evoked_dip,
 fig = dip.plot_locations(trans_fname, subject=subject, subjects_dir=subjects_dir)
 fig.savefig(fig_folder + '/%s_dip_fit.png' % subject)
 
+trans = mne.read_trans(trans_fname)
 mni_pos = mne.head_to_mni(dip.pos, mri_head_t=trans,
                           subject=subject, subjects_dir=subjects_dir)
 
-trans = mne.read_trans(trans_fname)
 mri_pos = mne.transforms.apply_trans(trans, dip.pos) * 1e3
 t1_fname = os.path.join(subjects_dir, subject, 'mri', 'T1.mgz')
 t1 = nib.load(t1_fname)
