@@ -2,7 +2,8 @@
 ## Identifying seizures in MEG data: Localization of MEG seizures onset
 
 This repository contains all the code necessary to reproduce our submission to
-the [BIOMAG challenge of 2018](https://sites.google.com/view/biomag-2018-challenge/home). 
+the [BIOMAG challenge of 2018](https://sites.google.com/view/biomag-2018-challenge/home).
+The final slides can be found in `submission.pdf`
 
 ### Package Requirements
 
