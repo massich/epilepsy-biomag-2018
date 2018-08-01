@@ -1,0 +1,26 @@
+From c066a288090fca9e4a605afa1b6b0e5f528a63af Mon Sep 17 00:00:00 2001
+From: Alexandre Gramfort <alexandre.gramfort@m4x.org>
+Date: Fri, 20 Jul 2018 17:20:27 +0200
+Subject: [PATCH] don't center with PCA
+
+---
+ sklearn/decomposition/pca.py | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/sklearn/decomposition/pca.py b/sklearn/decomposition/pca.py
+index db183af45..8bae1f755 100644
+--- a/sklearn/decomposition/pca.py
++++ b/sklearn/decomposition/pca.py
+@@ -431,7 +431,8 @@ class PCA(_BasePCA):
+                                  % (n_components, type(n_components)))
+ 
+         # Center data
+-        self.mean_ = np.mean(X, axis=0)
++        self.mean_ = np.zeros_like(np.mean(X, axis=0))
++        # self.mean_ = np.mean(X, axis=0)
+         X -= self.mean_
+ 
+         U, S, V = linalg.svd(X, full_matrices=False)
+-- 
+2.14.1
+
