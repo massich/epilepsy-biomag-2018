@@ -13,7 +13,7 @@ import utils
 
 plt.close('all')
 
-subject = subject_ids[0]
+subject = subject_ids[2]
 fig_folder = os.path.join(mne_data_path, '..', 'figures', subject)
 evoked_clean_fname = os.path.join(mne_data_path, subject, '%s-ave.fif' % subject)
 trans_fname = os.path.join(mne_data_path, subject, "%s-trans.fif" % subject)
@@ -47,10 +47,10 @@ bads = {subject_ids[0]: ['EEG045', 'EEG023', 'EEG032', 'EEG024', 'EEG061',
                          'MEG1341', 'MEG1411', 'MEG2611', 'MEG2421', 'MEG2641',
                          'MEG1441',
                          'MEG2341', 'MEG2411', # MAG but not sure if they should go in or out
-                         'MEG1222', 'MEG1322', 'MEG1323', 'MEG1333', 'MEG1342', 'MEG1412',
-                         'MEG1413', 'MEG1423', 'MEG1433', 'MEG1442', 'MEG1443', 'MEG2413',
-                         'MEG2422', 'MEG2423', 'MEG2433', 'MEG2612', 'MEG2613', 'MEG2623',
-                         'MEG2642',
+                         'MEG1222', 'MEG1322', 'MEG1323', 'MEG1333', 'MEG1342',
+                         'MEG1412', 'MEG1413', 'MEG1423', 'MEG1433', 'MEG1442',
+                         'MEG1443', 'MEG2413', 'MEG2422', 'MEG2423', 'MEG2433',
+                         'MEG2612', 'MEG2613', 'MEG2623', 'MEG2642',
                          'MEG1133', 'MEG1223', 'MEG1312', 'MEG1313',  # grad from no croping
                          'MEG1332', 'MEG1343', 'MEG1422', 'MEG1432',  # grad from no croping
                          'MEG2222', 'MEG2323', 'MEG2412', 'MEG2432',  # grad from no croping
@@ -112,6 +112,14 @@ ica.fit(raw.copy().pick_types(meg=True))
 ica.plot_components(ch_type='mag')
 ica.plot_sources(raw)
 
+# Manually select the ICA components and populate ica_signal_to_reconstruct
+ica_signal_to_reconstruct = {subject_ids[0]: 33,
+                             subject_ids[1]: 35,
+                             subject_ids[2]: 23,
+                            }
+for ch_type in ['mag', 'grad']:
+    fig = ica.plot_components(ch_type=ch_type, picks=[ica_signal_to_reconstruct[subject]])
+    fig.savefig(fig_folder + f"/{subject}_ica_comp_topo_2d_{ch_type}.png")
 
 ##############################################################################
 # Fit dipole to dipolar ICA component (option 1 with grads only)
@@ -131,12 +139,6 @@ ica.plot_sources(raw)
 ##############################################################################
 # Fit dipole to dipolar ICA component (option 2)
 
-ica_signal_to_reconstruct = {subject_ids[0]: 33,
-                             subject_ids[1]: 35,
-                             subject_ids[2]: 23,
-                            }
-fig = ica.plot_components(ch_type='mag', picks=[ica_signal_to_reconstruct[subject]])
-fig.savefig(fig_folder + '/%s_ica_comp_topo_2d.png' % subject)
 ica1 = ica.copy()
 ica1.exclude = list(np.setdiff1d(np.arange(ica1.n_components_),
                                  ica_signal_to_reconstruct[subject]))
